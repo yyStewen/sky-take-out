@@ -116,4 +116,26 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = Employee.builder().id(id).status(status).build();
         employeeMapper.update(employee);//修改员工状态。用动态sql集成所有修改类操作
     }
+
+    @Override
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        employee.setPassword("****");//隐私保护
+        return employee;
+    }
+
+    @Override
+    public void update(EmployeeDTO employeeDTO) {//修改员工信息
+        //第一步，使用beanUtils将dto对象属性拷贝到emp对象中
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+
+        //第二步，设置修改时间、修改人
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        //第三步，更新员工的信息
+        employeeMapper.update(employee);
+
+    }
 }

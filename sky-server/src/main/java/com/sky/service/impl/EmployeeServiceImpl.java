@@ -109,4 +109,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(page.getTotal(), page.getResult());
 
     }
+
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        //修改员工的status字段
+        Employee employee = Employee.builder().id(id).status(status).build();
+        employeeMapper.update(employee);//修改员工状态。用动态sql集成所有修改类操作
+    }
 }

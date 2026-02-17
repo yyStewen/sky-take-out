@@ -8,10 +8,12 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,6 +39,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
+
+    @Autowired
+    private SetmealMapper setmealMapper;
     @Override
     @Transactional//涉及到多条sql语句，使用事务注解，确保数据的一致性
     public void saveWithFlavor(DishDTO dishDTO) {
@@ -89,6 +95,7 @@ public class DishServiceImpl implements DishService {
      * 删除菜品后，关联的口味数据也需要删除掉
      */
     @Override
+    @Transactional
     public void deleteBatch(List<Long> ids) {
         //先判断菜品能否被删除--起售中状态
         //遍历id，如存在起售中菜品则不允许删除
@@ -140,6 +147,7 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Transactional
     public void updateWithFlavor(DishDTO dishDTO) {
         //修改菜品表基本信息
         Dish dish = new Dish();
@@ -162,9 +170,36 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
-    public void updateStatus(Integer status, Long id) {
+    @Transactional
+    public void startOrStop(Integer status, Long id) {
         //不需要创建新的mapper接口方法。直接使用已有的修改菜品。
         Dish dish = Dish.builder().id(id).status(status).build();
         dishMapper.update(dish);
+
+        //同时需要再在停售菜品的同时，把相关的套餐的状态也改变。停售菜品同时需要停售关联的套餐
+        //先条件判断，如果是禁用该菜品的话要查找该菜品关联到了哪些套餐
+        if (status == StatusConstant.DISABLE) {
+            // 如果是停售操作，还需要将包含当前菜品的套餐也停售
+            List<Long> dishIds = new ArrayList<>();
+            dishIds.add(id);
+            // select setmeal_id from setmeal_dish where dish_id in (?,?,?)
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
+            if (setmealIds != null && setmealIds.size() > 0) {
+                for (Long setmealId : setmealIds) {
+                    Setmeal setmeal = Setmeal.builder()
+                            .id(setmealId)
+                            .status(StatusConstant.DISABLE)
+                            .build();
+                    setmealMapper.update(setmeal);
+                }
+            }
+        }
+
+    }
+
+    @Override
+    public List<DishVO> findDishByCategoryId(Long categoryId) {
+        List<DishVO> dishVOList = dishMapper.findDishByCategoryId(categoryId);
+        return dishVOList;
     }
 }

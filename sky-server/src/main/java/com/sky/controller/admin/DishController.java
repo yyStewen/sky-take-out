@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 //菜品管理接口实现
+@Api(tags = "菜品相关接口")
 @RestController
 @RequestMapping("/admin/dish")
-@Api("菜品相关接口")
+
 @Slf4j
 public class DishController {
     @Autowired
@@ -72,9 +73,23 @@ public class DishController {
     //菜品停售和起售功能的接口实现
     @PostMapping("/status/{status}")
     @ApiOperation("菜品停售和起售")
-    public Result updateStatus(@PathVariable Integer status, @RequestParam Long id) {
+    public Result startOrStop(@PathVariable Integer status, @RequestParam Long id) {
         log.info("菜品停售和起售：状态：{}，id:{}",status, id);
-        dishService.updateStatus(status, id);
+        dishService.startOrStop(status, id);
         return Result.success();
+    }
+
+    // 根据菜品分类的id查询菜品
+    /**
+     * Path： /admin/dish/list
+     *
+     * Method： GET
+     */
+
+    @GetMapping("/list")
+    @ApiOperation("根据菜品分类的id查询菜品")
+    public Result<List<DishVO>> findDishByCategoryId(@RequestParam Long categoryId) {
+        log.info("根据分类id查询菜品：{}", categoryId);
+        return Result.success(dishService.findDishByCategoryId(categoryId));
     }
 }

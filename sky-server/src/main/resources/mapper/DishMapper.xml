@@ -57,7 +57,7 @@
                 and d.category_id = #{categoryId}
             </if>
             <if test="name != null">
-                and d.name like '%${name}%'
+                and d.name like concat('%',#{name} '%')
             </if>
             <if test="status != null">
                 and d.status = #{status}
@@ -67,5 +67,8 @@
     </select>
     <select id="getById" resultType="com.sky.entity.Dish">
         select * from dish where id = #{id}
+    </select>
+    <select id="findDishByCategoryId" resultType="com.sky.vo.DishVO">
+        select * from dish where category_id = #{categoryId} order by update_time desc
     </select>
 </mapper>

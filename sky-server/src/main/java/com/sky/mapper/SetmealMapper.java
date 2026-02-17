@@ -1,7 +1,14 @@
 package com.sky.mapper;
 
+import com.sky.annotation.AutoFill;
+import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Setmeal;
+import com.sky.enumeration.OperationType;
+import com.sky.vo.SetmealVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface SetmealMapper {
@@ -14,4 +21,16 @@ public interface SetmealMapper {
     @Select("select count(id) from setmeal where category_id = #{categoryId}")
     Integer countByCategoryId(Long id);
 
+    List<SetmealVO> pageQuery(SetmealPageQueryDTO setmealPageQueryDTO);
+
+    //注解实现切面编程管理字段自动注入
+    @AutoFill(value = OperationType.INSERT)
+    void insert(Setmeal setmeal);
+
+    Setmeal getSetmealById(Long id);
+
+    @AutoFill(value = OperationType.UPDATE)
+    void update(Setmeal setmeal);
+
+    void deleteByIds(List<Long> ids);
 }

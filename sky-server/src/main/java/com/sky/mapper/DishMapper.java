@@ -37,4 +37,6 @@ public interface DishMapper {
 
 
     List<DishVO> findDishByCategoryId(Long categoryId);
+
+    List<Dish> list(Dish dish);
 }

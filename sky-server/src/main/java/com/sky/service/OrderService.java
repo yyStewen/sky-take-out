@@ -50,4 +50,6 @@ public interface OrderService {
     void complete(Long id);
 
     void cancelByAdmin(OrdersCancelDTO ordersCancelDTO);
+
+    void reminder(Long id);
 }
